@@ -22,3 +22,8 @@ def create_user_profile(sender, instance, created, **kwargs):
     """Create a new Profile() object when a Django User is created."""
     if created:
         Profile.objects.create(user=instance)
+
+
+@receiver(post_save, sender=User)
+def save_user_profile(sender, instance, **kwargs):
+    Profile.objects.get_or_create(user=instance)

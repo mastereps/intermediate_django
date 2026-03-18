@@ -1,10 +1,15 @@
+from django.contrib import messages
 from django.contrib.auth.models import User
-from django.views.generic import DetailView, View
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import JsonResponse, HttpResponseBadRequest
+from django.urls import reverse_lazy
+from django.views.generic import DetailView, UpdateView, View
 
 from feed.models import Post
 from followers.models import Follower
+
+from .forms import ProfileSettingsForm
+from .models import Profile
 
 
 class ProfileDetailView(DetailView):
@@ -19,6 +24,11 @@ class ProfileDetailView(DetailView):
         self.request = request
         return super().dispatch(request, *args, **kwargs)
 
+    def get_object(self, queryset=None):
+        user = super().get_object(queryset)
+        Profile.objects.get_or_create(user=user)
+        return user
+
     def get_context_data(self, **kwargs):
         user = self.get_object()
         context = super().get_context_data(**kwargs)
@@ -27,7 +37,21 @@ class ProfileDetailView(DetailView):
         if self.request.user.is_authenticated:
             context['you_follow'] = Follower.objects.filter(following=user, followed_by=self.request.user).exists()
         return context
-        return context
+
+
+class ProfileSettingsView(LoginRequiredMixin, UpdateView):
+    http_method_names = ["get", "post"]
+    form_class = ProfileSettingsForm
+    template_name = "profiles/settings.html"
+    success_url = reverse_lazy("profiles:settings")
+
+    def get_object(self, queryset=None):
+        profile, _ = Profile.objects.get_or_create(user=self.request.user)
+        return profile
+
+    def form_valid(self, form):
+        messages.success(self.request, "Profile updated.")
+        return super().form_valid(form)
 
 
 class FollowView(LoginRequiredMixin, View):

@@ -1,0 +1,8 @@
+{% load thumbnail %}
+{% if avatar_user.profile.image %}
+    {% thumbnail avatar_user.profile.image image_size crop="center" as im %}
+        <img class="{{ avatar_classes }}" src="{{ im.url }}" alt="{{ avatar_user.username }} avatar">
+    {% endthumbnail %}
+{% else %}
+    <span class="{{ fallback_classes }}">{{ avatar_user.username|first }}</span>
+{% endif %}

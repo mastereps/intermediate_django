@@ -18,9 +18,7 @@
         {% endif %}
         <div>
             <a class="flex items-center" href="{% url 'profiles:detail' post.author.username %}">
-                {% thumbnail post.author.profile.image "373x373" crop="center" as im %}
-                    <img class="mx-4 w-10 h-10 object-cover rounded-full hidden sm:block" src="{{ im.url }}" alt="avatar">
-                {% endthumbnail %}
+                {% include "includes/avatar.html" with avatar_user=post.author image_size="373x373" avatar_classes="mx-4 w-10 h-10 object-cover rounded-full hidden sm:block" fallback_classes="mx-4 w-10 h-10 rounded-full bg-slate-800 text-white hidden sm:flex items-center justify-center text-sm font-semibold uppercase" %}
                 <h1 class="text-gray-700 font-bold">{{ post.author.username }}</h1>
             </a>
         </div>
