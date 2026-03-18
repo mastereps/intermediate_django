@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Sign In" %}{% endblock %}
+{% block content %}
+    <style>
+        .auth-shell {
+            min-height: calc(100vh - 8rem);
+        }
+
+        .auth-card input[type="email"],
+        .auth-card input[type="password"],
+        .auth-card input[type="text"] {
+            width: 100%;
+            border-radius: 0.75rem;
+            border: 1px solid #d1d5db;
+            background: #f9fafb;
+            padding: 0.875rem 1rem;
+            color: #111827;
+            outline: none;
+            transition: border-color .2s ease, box-shadow .2s ease, background-color .2s ease;
+        }
+
+        .auth-card input[type="email"]:focus,
+        .auth-card input[type="password"]:focus,
+        .auth-card input[type="text"]:focus {
+            border-color: #4f46e5;
+            background: #ffffff;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+        }
+
+        .auth-card label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .auth-card ul.errorlist {
+            margin: 0 0 0.5rem;
+            padding: 0;
+            list-style: none;
+            color: #b91c1c;
+            font-size: 0.875rem;
+        }
+
+        .auth-card input[type="checkbox"] {
+            height: 1rem;
+            width: 1rem;
+            border-radius: 0.25rem;
+            border-color: #cbd5e1;
+            color: #4338ca;
+        }
+    </style>
+
+    <div class="auth-shell w-full flex items-start justify-center px-4 py-8 lg:items-center lg:py-10">
+        <div class="w-full max-w-4xl overflow-hidden rounded-3xl bg-white shadow-2xl shadow-slate-200/70 ring-1 ring-indigo-100">
+            <div class="auth-card bg-slate-50 px-6 py-8 sm:px-10 lg:px-12 lg:py-10">
+                <div class="mx-auto w-full max-w-md">
+                    <div class="mb-6">
+                        <p class="text-sm font-medium uppercase tracking-[0.28em] text-indigo-600">Account</p>
+                        <h1 class="mt-3 text-3xl font-semibold text-slate-900">{% trans "Sign In" %}</h1>
+                        <p class="mt-3 text-sm leading-6 text-slate-500">
+                            {% blocktranslate %}Use your email and password to access your account.{% endblocktranslate %}
+                        </p>
+                    </div>
+
+                    {% if messages %}
+                        <div class="mb-6 space-y-3">
+                            {% for message in messages %}
+                                <div class="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 shadow-sm">
+                                    {{ message }}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    {% if not SOCIALACCOUNT_ONLY %}
+                        <div class="mb-6 rounded-2xl border border-indigo-100 bg-indigo-50 px-4 py-3 text-sm text-slate-700">
+                            {% url 'account_signup' as signup_url %}
+                            {% blocktranslate %}If you have not created an account yet, you can <a href="{{ signup_url }}" class="font-semibold text-indigo-700 hover:text-indigo-900">sign up here</a>.{% endblocktranslate %}
+                        </div>
+
+                        <form method="post" action="{% url 'account_login' %}" class="space-y-5">
+                            {% csrf_token %}
+
+                            {% if form.non_field_errors %}
+                                <div class="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                                    {{ form.non_field_errors }}
+                                </div>
+                            {% endif %}
+
+                            <div>
+                                {{ form.login.label_tag }}
+                                {{ form.login }}
+                                {% if form.login.errors %}
+                                    <div class="mt-2 text-sm text-red-700">{{ form.login.errors }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div>
+                                {{ form.password.label_tag }}
+                                {{ form.password }}
+                                {% if form.password.errors %}
+                                    <div class="mt-2 text-sm text-red-700">{{ form.password.errors }}</div>
+                                {% endif %}
+                                <div class="mt-3 text-right">
+                                    <a href="{% url 'account_reset_password' %}" class="text-sm font-medium text-indigo-700 transition hover:text-indigo-900">
+                                        {% trans "Forgot password?" %}
+                                    </a>
+                                </div>
+                            </div>
+
+                            {% if form.remember %}
+                                <label class="flex items-center gap-3 text-sm text-slate-600">
+                                    {{ form.remember }}
+                                    <span>{% trans "Remember me" %}</span>
+                                </label>
+                            {% endif %}
+
+                            {{ redirect_field }}
+
+                            <button type="submit" class="inline-flex w-full items-center justify-center rounded-2xl bg-indigo-700 px-4 py-3 text-base font-semibold text-white transition hover:bg-slate-900 focus:outline-none focus:ring-4 focus:ring-indigo-200">
+                                {% trans "Sign In" %}
+                            </button>
+                        </form>
+                    {% endif %}
+
+                    {% if LOGIN_BY_CODE_ENABLED or PASSKEY_LOGIN_ENABLED %}
+                        <div class="mt-8 border-t border-slate-200 pt-6">
+                            <p class="text-xs font-semibold uppercase tracking-[0.24em] text-slate-400">Alternative access</p>
+                            <div class="mt-4 space-y-3">
+                                {% if PASSKEY_LOGIN_ENABLED %}
+                                    <button type="submit" form="mfa_login" id="passkey_login" class="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-indigo-300 hover:text-indigo-700">
+                                        {% trans "Sign in with a passkey" %}
+                                    </button>
+                                {% endif %}
+                                {% if LOGIN_BY_CODE_ENABLED %}
+                                    <a href="{{ request_login_code_url }}" class="block w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-center text-sm font-semibold text-slate-700 transition hover:border-indigo-300 hover:text-indigo-700">
+                                        {% trans "Send me a sign-in code" %}
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock content %}
+{% block extra_body %}
+    {{ block.super }}
+    {% if PASSKEY_LOGIN_ENABLED %}
+        {% include "mfa/webauthn/snippets/login_script.html" with button_id="passkey_login" %}
+    {% endif %}
+{% endblock %}
